@@ -44,9 +44,12 @@ import { decideAiPreRollAction, selectAiMove } from '../engine/aiEngine';
 import { soundManager } from '../audio/soundManager';
 import { BoardParticleBurst, LudoBoard } from '../components/LudoBoard';
 import { DiceWidget } from '../components/DiceWidget';
+import { AppLanguage } from '../models/gameModels';
+import { getTranslation } from '../i18n/translations';
 
 interface GameplayScreenProps {
   gameState: GameState;
+  language?: AppLanguage;
   sfxEnabled: boolean;
   musicEnabled: boolean;
   onUpdateGameState: (next: GameState) => void;
@@ -60,6 +63,7 @@ interface GameplayScreenProps {
 
 export const GameplayScreen: React.FC<GameplayScreenProps> = ({
   gameState,
+  language = 'en',
   sfxEnabled,
   musicEnabled,
   onUpdateGameState,
@@ -466,39 +470,52 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
     SkillId.DOUBLE_DICE
   );
 
+  const t = (k: string) => getTranslation(language, k);
+
   const canHumanRoll =
     isHumanTurn && !isRollingAnim && gameState.turnPhase === 'WAITING_FOR_ROLL';
 
   const statusText = isRollingAnim
-    ? 'Rolling dice on board...'
+    ? t('rolling_dice')
     : gameState.turnPhase === 'SELECTING_SHIELD_TOKEN'
-      ? 'Tap an active piece on the board to Shield'
+      ? t('shield_prompt')
       : gameState.turnPhase === 'NO_MOVES_DELAY'
-        ? `Rolled ${gameState.lastDiceRoll?.total ?? ''} · No valid moves`
+        ? `${gameState.lastDiceRoll?.total ?? ''} · ${t('no_moves')}`
         : gameState.turnPhase === 'SELECTING_MOVE'
           ? isHumanTurn
-            ? `Rolled ${gameState.lastDiceRoll?.total ?? ''} · Tap a glowing piece`
+            ? `${gameState.lastDiceRoll?.total ?? ''} · ${t('tap_piece')}`
             : `${activePlayer.name} rolled ${gameState.lastDiceRoll?.total ?? ''}`
           : isHumanTurn
             ? gameState.doubleDicePrimed
-              ? 'Twin Dice Primed · Tap Dice to Roll'
-              : 'Tap Dice to Roll'
-            : `${activePlayer.name} (${activePlayer.aiDifficulty} AI) is playing`;
+              ? t('twin_dice')
+              : t('tap_to_roll')
+            : `${activePlayer.name} (${activePlayer.aiDifficulty} AI)`;
 
   return (
-    <div className="min-h-dvh w-full wood-tabletop flex flex-col justify-between items-center px-3 py-2.5 sm:py-4 overflow-hidden">
+    <div className="h-full w-full flex flex-col justify-between items-center px-2.5 sm:px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] overflow-hidden">
       {/* TOP SECTION: Current Player & Turn Information */}
       <header className="w-full max-w-[660px] flex items-center justify-between gap-3 shrink-0">
-        <div className="wood-banner flex-1 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Raised 3D Color Token Disc */}
+        <div
+          className={`wood-banner flex-1 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 transition-all ${
+            isHumanTurn ? 'animate-turn-glow ring-2 ring-amber-300' : ''
+          }`}
+          style={{
+            borderColor: activePalette.highlight,
+            boxShadow: isHumanTurn
+              ? `0 0 20px ${activePalette.primary}bb, inset 0 0 10px rgba(255, 230, 100, 0.4)`
+              : undefined,
+          }}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Raised 3D Color Token Disc with pulsing aura */}
             <span
-              className="w-8 h-8 rounded-full border-2 border-[#FFF8E6] shadow-md shrink-0 flex items-center justify-center"
+              className="relative w-9 h-9 rounded-full border-2 border-[#FFF8E6] shadow-md shrink-0 flex items-center justify-center"
               style={{
                 background: `radial-gradient(circle at 32% 30%, ${activePalette.highlight}, ${activePalette.primary} 55%, ${activePalette.dark})`,
               }}
             >
-              <span className="w-3.5 h-3.5 rounded-full border border-white/60" />
+              <span className="w-3.5 h-3.5 rounded-full border border-white/70" />
+              <span className="absolute -inset-1 rounded-full border border-amber-300 animate-ping opacity-60" />
             </span>
 
             <div className="min-w-0">
@@ -506,9 +523,15 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                 <span className="font-display text-base sm:text-lg font-bold text-[#FFFDF7] truncate">
                   {activePlayer.name}’s Turn
                 </span>
-                <span className="text-xs text-[#F5D78E] font-mono-num whitespace-nowrap">
-                  · Turn {gameState.turnNumber}
-                </span>
+                {isHumanTurn ? (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[10px] font-black uppercase tracking-wider animate-pulse whitespace-nowrap shadow-sm">
+                    YOUR TURN
+                  </span>
+                ) : (
+                  <span className="text-xs text-[#F5D78E] font-mono-num whitespace-nowrap">
+                    · {t('turn')} {gameState.turnNumber}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-[#EAD8B8] truncate">{statusText}</p>
             </div>
@@ -518,7 +541,7 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
           {gameState.lastDiceRoll && !isRollingAnim && (
             <div className="px-2.5 py-1 rounded-xl bg-[#2A1709]/70 border border-[#C89B43]/60 text-right shrink-0">
               <div className="text-[10px] text-[#E6CFA8] leading-tight">
-                Last Roll
+                {t('last_roll')}
               </div>
               <div className="text-sm font-bold font-mono-num text-[#FFE699] leading-tight">
                 {gameState.lastDiceRoll.isDoubleDice
@@ -548,9 +571,9 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
       </main>
 
       {/* BOTTOM SECTION: Neo Classic Golden Circular Buttons & Player Controls */}
-      <footer className="w-full max-w-[660px] flex items-center justify-between gap-2 sm:gap-4 pt-1 shrink-0">
+      <footer className="w-full flex items-center justify-between gap-1 sm:gap-2 pt-1 pb-1 shrink-0 px-1">
         {/* Left Golden Controls: Back & Pause */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -559,9 +582,9 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
             }}
             aria-label="Back to Home"
             title="Back to Home"
-            className="gold-circle-btn w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center cursor-pointer shrink-0"
+            className="gold-circle-btn w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center cursor-pointer shrink-0"
           >
-            <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+            <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
           </button>
 
           <button
@@ -572,14 +595,14 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
             }}
             aria-label="Pause Game"
             title="Pause Game"
-            className="gold-circle-btn w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center cursor-pointer shrink-0"
+            className="gold-circle-btn w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center cursor-pointer shrink-0"
           >
-            <Pause className="w-5 h-5 stroke-[2.5]" />
+            <Pause className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
 
         {/* Center Player Controls: Tactical Skill Medallions + Golden Dice Button */}
-        <div className="flex items-center justify-center gap-2.5 sm:gap-3.5">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 shrink-0">
           {gameState.rules.enableSkills && (
             <button
               type="button"
@@ -591,14 +614,14 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                   gameState.turnPhase !== 'SELECTING_SHIELD_TOKEN')
               }
               title={`Aegis Shield (${activePlayer.skills[SkillId.SHIELD].chargesRemaining} left)`}
-              className={`gold-circle-btn relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex flex-col items-center justify-center cursor-pointer shrink-0 ${
+              className={`gold-circle-btn relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center cursor-pointer shrink-0 ${
                 gameState.turnPhase === 'SELECTING_SHIELD_TOKEN'
-                  ? 'ring-4 ring-sky-400'
+                  ? 'ring-3 ring-sky-400'
                   : ''
               }`}
             >
-              <Shield className="w-4 h-4 stroke-[2.5]" />
-              <span className="text-[9px] font-mono-num font-extrabold leading-none mt-0.5">
+              <Shield className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="text-[8px] font-mono-num font-extrabold leading-none mt-0.5">
                 {activePlayer.skills[SkillId.SHIELD].chargesRemaining}
               </span>
             </button>
@@ -623,12 +646,12 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                 gameState.doubleDicePrimed
               }
               title={`Double Dice (${activePlayer.skills[SkillId.DOUBLE_DICE].chargesRemaining} left)`}
-              className={`gold-circle-btn relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex flex-col items-center justify-center cursor-pointer shrink-0 ${
-                gameState.doubleDicePrimed ? 'ring-4 ring-amber-200' : ''
+              className={`gold-circle-btn relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center cursor-pointer shrink-0 ${
+                gameState.doubleDicePrimed ? 'ring-3 ring-amber-200' : ''
               }`}
             >
-              <Dices className="w-4 h-4 stroke-[2.5]" />
-              <span className="text-[9px] font-mono-num font-extrabold leading-none mt-0.5">
+              <Dices className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="text-[8px] font-mono-num font-extrabold leading-none mt-0.5">
                 {activePlayer.skills[SkillId.DOUBLE_DICE].chargesRemaining}
               </span>
             </button>
@@ -636,18 +659,18 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
         </div>
 
         {/* Right Golden Controls: Sound & Settings */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={onToggleSfx}
             aria-label={sfxEnabled ? 'Mute Sound' : 'Enable Sound'}
             title={sfxEnabled ? 'Sound On' : 'Sound Muted'}
-            className="gold-circle-btn w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center cursor-pointer shrink-0"
+            className="gold-circle-btn w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center cursor-pointer shrink-0"
           >
             {sfxEnabled ? (
-              <Volume2 className="w-5 h-5 stroke-[2.5]" />
+              <Volume2 className="w-4 h-4 stroke-[2.5]" />
             ) : (
-              <VolumeX className="w-5 h-5 stroke-[2.5] opacity-70" />
+              <VolumeX className="w-4 h-4 stroke-[2.5] opacity-70" />
             )}
           </button>
 
@@ -659,9 +682,9 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
             }}
             aria-label="Match Settings"
             title="Match Settings"
-            className="gold-circle-btn w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center cursor-pointer shrink-0"
+            className="gold-circle-btn w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center cursor-pointer shrink-0"
           >
-            <Settings className="w-5 h-5 stroke-[2.5]" />
+            <Settings className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       </footer>
@@ -695,7 +718,7 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                 className="gold-cta-btn min-h-[48px] px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
               >
                 <Play className="w-4 h-4 fill-current" />
-                <span>Resume Game</span>
+                <span>{t('resume')}</span>
               </button>
 
               <button
@@ -707,7 +730,7 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                 className="min-h-[46px] px-4 rounded-xl bg-[#EFE2C6] hover:bg-[#E6D5B3] border border-[#8C6239] text-[#2C1A0E] font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Restart Match</span>
+                <span>{t('restart')}</span>
               </button>
 
               <button
@@ -719,7 +742,7 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                 className="min-h-[46px] px-4 rounded-xl bg-[#EFE2C6] hover:bg-[#E6D5B3] border border-[#8C6239] text-[#2C1A0E] font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap"
               >
                 <BookOpen className="w-4 h-4" />
-                <span>How to Play</span>
+                <span>{t('how_to_play')}</span>
               </button>
 
               <button
@@ -731,7 +754,7 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                 className="min-h-[46px] px-4 rounded-xl bg-[#5C381C] hover:bg-[#4A2C14] text-[#FFFDF7] font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap"
               >
                 <Home className="w-4 h-4" />
-                <span>Return to Home</span>
+                <span>{t('exit_home')}</span>
               </button>
             </div>
           </div>

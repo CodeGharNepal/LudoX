@@ -2,11 +2,14 @@ import {
   AiDifficulty,
   AppSettings,
   DEFAULT_GAME_RULES,
+  DEFAULT_USER_PROFILE,
   PlayerStatistics,
+  UserProfile,
 } from '../models/gameModels';
 
 const STATS_KEY = 'royal_ludo_stats_v1';
 const SETTINGS_KEY = 'royal_ludo_settings_v1';
+const PROFILE_KEY = 'royal_ludo_profile_v1';
 
 export const INITIAL_STATISTICS: PlayerStatistics = {
   totalGamesPlayed: 0,
@@ -21,9 +24,33 @@ export const INITIAL_STATISTICS: PlayerStatistics = {
 export const INITIAL_SETTINGS: AppSettings = {
   sfxEnabled: true,
   musicEnabled: false,
+  language: 'en',
   defaultDifficulty: AiDifficulty.MEDIUM,
   rules: { ...DEFAULT_GAME_RULES },
 };
+
+export function loadUserProfile(): UserProfile {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return { ...DEFAULT_USER_PROFILE };
+    const parsed = JSON.parse(raw) as Partial<UserProfile>;
+    return {
+      name: (parsed.name && parsed.name.trim()) || DEFAULT_USER_PROFILE.name,
+      avatar: parsed.avatar || DEFAULT_USER_PROFILE.avatar,
+      favoriteColor: parsed.favoriteColor || DEFAULT_USER_PROFILE.favoriteColor,
+    };
+  } catch {
+    return { ...DEFAULT_USER_PROFILE };
+  }
+}
+
+export function saveUserProfile(profile: UserProfile): void {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
 
 export function loadStatistics(): PlayerStatistics {
   try {
@@ -104,6 +131,7 @@ export function loadSettings(): AppSettings {
     return {
       sfxEnabled: parsed.sfxEnabled ?? true,
       musicEnabled: parsed.musicEnabled ?? false,
+      language: parsed.language ?? 'en',
       defaultDifficulty: parsed.defaultDifficulty ?? AiDifficulty.MEDIUM,
       rules: {
         ...DEFAULT_GAME_RULES,

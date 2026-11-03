@@ -250,6 +250,35 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
           strokeWidth="6"
         />
 
+        {/* Active Turn Continuous Pulsing Energy Beacon */}
+        {isActive && (
+          <g pointerEvents="none">
+            {/* Outer pulsating energy aura */}
+            <rect
+              x={x + 6}
+              y={y + 6}
+              width={size - 12}
+              height={size - 12}
+              rx="28"
+              fill="none"
+              stroke="#FFE855"
+              strokeWidth="10"
+            >
+              <animate attributeName="stroke-opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite" />
+              <animate attributeName="stroke-width" values="6;12;6" dur="1.2s" repeatCount="indefinite" />
+            </rect>
+            {/* Soft inner radiant glow wash */}
+            <rect
+              x={x + 12}
+              y={y + 12}
+              width={size - 24}
+              height={size - 24}
+              rx="24"
+              fill="rgba(255, 235, 120, 0.14)"
+            />
+          </g>
+        )}
+
         {/* Subtle Inner Recessed Frame */}
         <rect
           x={x + 14}
@@ -321,6 +350,42 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
           );
         })}
 
+        {/* Floating Active Turn Badge Alert */}
+        {isActive && playerInGame && (
+          <g transform={`translate(${x + size / 2}, ${y + 36})`} pointerEvents="none">
+            <rect
+              x="-96"
+              y="-17"
+              width="192"
+              height="34"
+              rx="17"
+              fill="#2E1706"
+              stroke="#FFE855"
+              strokeWidth="3.5"
+            >
+              <animate attributeName="stroke-width" values="2.5;5;2.5" dur="1s" repeatCount="indefinite" />
+            </rect>
+            <circle cx="-74" cy="0" r="5" fill="#FFE855">
+              <animate attributeName="r" values="3.5;7;3.5" dur="0.9s" repeatCount="indefinite" />
+            </circle>
+            <text
+              x="0"
+              y="5.5"
+              textAnchor="middle"
+              fill="#FFFDF8"
+              fontSize="16"
+              fontWeight="900"
+              letterSpacing="0.8"
+              style={{ fontFamily: 'Outfit, sans-serif' }}
+            >
+              {playerInGame.type === 'HUMAN' ? '★ YOUR TURN ★' : '▶ ACTIVE TURN ◀'}
+            </text>
+            <circle cx="74" cy="0" r="5" fill="#FFE855">
+              <animate attributeName="r" values="3.5;7;3.5" dur="0.9s" repeatCount="indefinite" />
+            </circle>
+          </g>
+        )}
+
         {/* Symmetrical Player Name & Progress Percentage Plaque */}
         <rect
           x={x + 74}
@@ -328,9 +393,9 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
           width={size - 148}
           height={60}
           rx="18"
-          fill="rgba(38, 20, 8, 0.34)"
-          stroke="rgba(255, 245, 220, 0.38)"
-          strokeWidth="2.5"
+          fill={isActive ? 'rgba(46, 23, 6, 0.75)' : 'rgba(38, 20, 8, 0.34)'}
+          stroke={isActive ? '#FFE855' : 'rgba(255, 245, 220, 0.38)'}
+          strokeWidth={isActive ? '4' : '2.5'}
         />
         {playerInGame ? (
           <>
@@ -376,7 +441,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
 
   return (
     <div
-      className={`relative w-full aspect-square max-w-[min(75dvh,650px)] mx-auto rounded-[22px] shadow-[0_18px_40px_rgba(42,22,7,0.42)] ${
+      className={`relative w-full aspect-square max-w-[min(calc(100vw-1.25rem),calc(100dvh-170px),416px)] mx-auto rounded-[22px] shadow-[0_18px_40px_rgba(42,22,7,0.42)] ${
         shakeBoard ? 'animate-board-shake' : ''
       }`}
     >
@@ -719,26 +784,41 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                   <circle cx="0" cy="0" r="56" fill="transparent" />
                 )}
 
-                {/* Highlight Ring for Movable Tokens */}
+                {/* Highlight Ring & Alert Chevron for Movable Tokens */}
                 {isMovable && (
-                  <g className="animate-token-ring">
+                  <g pointerEvents="none">
                     <circle
                       cx="0"
                       cy="2"
-                      r="47"
-                      fill="rgba(245, 190, 56, 0.34)"
-                      stroke="#C98A14"
+                      r="48"
+                      fill="rgba(245, 190, 56, 0.38)"
+                      stroke="#FFE855"
                       strokeWidth="5.5"
-                    />
+                    >
+                      <animate attributeName="r" values="46;58;46" dur="0.9s" repeatCount="indefinite" />
+                      <animate attributeName="stroke-opacity" values="1;0.4;1" dur="0.9s" repeatCount="indefinite" />
+                    </circle>
                     <circle
                       cx="0"
                       cy="2"
-                      r="53"
+                      r="54"
                       fill="none"
-                      stroke="#FFF7D6"
+                      stroke="#FFFDF8"
                       strokeWidth="3"
-                      strokeDasharray="12 8"
+                      strokeDasharray="10 6"
                     />
+                    {/* Animated down-pointing bouncing chevron above token */}
+                    <g transform="translate(0, -50)">
+                      <polygon points="-11,-8 11,-8 0,6" fill="#FFE455" stroke="#3B1F08" strokeWidth="2.5">
+                        <animateTransform
+                          attributeName="transform"
+                          type="translate"
+                          values="0,0; 0,6; 0,0"
+                          dur="0.8s"
+                          repeatCount="indefinite"
+                        />
+                      </polygon>
+                    </g>
                   </g>
                 )}
 

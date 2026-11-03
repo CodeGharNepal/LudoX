@@ -445,7 +445,12 @@ export const BoardPhysicalDiceOverlay: React.FC<
         }`}
       >
         {canRoll && !isRolling && (
-          <span className="absolute inset-1 rounded-full border-2 border-amber-300/90 bg-amber-400/15 animate-ping pointer-events-none" />
+          <>
+            <span className="absolute inset-0 rounded-full border-4 border-amber-300 bg-amber-400/25 animate-ping pointer-events-none" />
+            <div className="absolute -top-7 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-300 border-2 border-amber-700 text-[#2C1A0E] text-[10px] font-black uppercase tracking-wider shadow-lg animate-bounce flex items-center gap-1 whitespace-nowrap pointer-events-none">
+              <span>ROLL DICE!</span>
+            </div>
+          </>
         )}
       </button>
 
@@ -485,33 +490,42 @@ export const DiceWidget: React.FC<GoldenDiceButtonProps> = ({
   const displayVal = lastRoll?.values[0] ?? 1;
 
   return (
-    <button
-      type="button"
-      disabled={!canRoll || isRolling}
-      onClick={() => {
-        if (canRoll && !isRolling) {
-          onRoll();
-        }
-      }}
-      aria-label="Roll Dice"
-      className={`gold-circle-btn relative w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full flex flex-col items-center justify-center cursor-pointer shrink-0 ${
-        canRoll && !isRolling ? 'ring-4 ring-amber-200/70' : ''
-      }`}
-    >
-      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#FFFDF7] border border-[#8C6223] shadow-inner p-0.5">
-        <DieFacePips value={displayVal} />
-      </div>
-      <span className="text-[9px] font-extrabold tracking-tight text-[#3A2004] mt-0.5 leading-none whitespace-nowrap">
-        {isRolling
-          ? 'ROLLING'
-          : canRoll
-            ? doubleDicePrimed
-              ? '2x ROLL'
-              : 'ROLL'
-            : lastRoll
-              ? `= ${lastRoll.total}`
-              : 'WAIT'}
-      </span>
-    </button>
+    <div className="relative flex flex-col items-center shrink-0">
+      {canRoll && !isRolling && (
+        <span className="absolute -top-3.5 z-20 px-2 py-0.5 rounded-full bg-amber-400 border border-amber-800 text-[9px] font-black text-amber-950 shadow-md animate-bounce whitespace-nowrap pointer-events-none">
+          ROLL!
+        </span>
+      )}
+      <button
+        type="button"
+        disabled={!canRoll || isRolling}
+        onClick={() => {
+          if (canRoll && !isRolling) {
+            onRoll();
+          }
+        }}
+        aria-label="Roll Dice"
+        className={`gold-circle-btn relative w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full flex flex-col items-center justify-center cursor-pointer shrink-0 transition-all ${
+          canRoll && !isRolling
+            ? 'ring-4 ring-amber-300 ring-offset-2 ring-offset-[#3E210A] animate-turn-glow'
+            : ''
+        }`}
+      >
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#FFFDF7] border border-[#8C6223] shadow-inner p-0.5">
+          <DieFacePips value={displayVal} />
+        </div>
+        <span className="text-[9px] font-extrabold tracking-tight text-[#3A2004] mt-0.5 leading-none whitespace-nowrap">
+          {isRolling
+            ? 'ROLLING'
+            : canRoll
+              ? doubleDicePrimed
+                ? '2x ROLL'
+                : 'ROLL'
+              : lastRoll
+                ? `= ${lastRoll.total}`
+                : 'WAIT'}
+        </span>
+      </button>
+    </div>
   );
 };

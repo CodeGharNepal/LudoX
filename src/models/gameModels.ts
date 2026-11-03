@@ -154,9 +154,24 @@ export interface PlayerStatistics {
   skillsActivated: number;
 }
 
+export type AppLanguage = 'en' | 'ne' | 'hi' | 'es';
+
+export interface UserProfile {
+  name: string;
+  avatar: string;
+  favoriteColor: PlayerColor;
+}
+
+export const DEFAULT_USER_PROFILE: UserProfile = {
+  name: 'Player 1',
+  avatar: '👑',
+  favoriteColor: PlayerColor.BLUE,
+};
+
 export interface AppSettings {
   sfxEnabled: boolean;
   musicEnabled: boolean;
+  language: AppLanguage;
   defaultDifficulty: AiDifficulty;
   rules: GameRulesConfig;
 }

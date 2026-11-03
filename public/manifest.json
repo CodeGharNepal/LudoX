@@ -1,0 +1,19 @@
+{
+  "name": "Royal Ludo Offline",
+  "short_name": "Royal Ludo",
+  "description": "Offline multiplayer & smart AI Ludo board game with realistic 3D dice physics and wooden board styling.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#dfc090",
+  "theme_color": "#5c381c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
